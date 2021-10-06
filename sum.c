@@ -33,7 +33,7 @@ void sum(char* output, const long unsigned int d, const long unsigned int n) {
             value += div;
             remainder = mod * 10;
         }
-        digit[i] = value;
+        digit[i] += value;
     }
 
     #pragma omp parallel for
