@@ -1,21 +1,3 @@
-// void HistogramaParaleloRed(int *histog, int number_threads)
-// {
-//     int thread_histog[number_threads][NG] = {{0}};
-//     #pragma omp parallel
-//     {
-//         int thread_id = omp_get_thread_num();
-//         #pragma omp for
-//         for (int i = 0; i < N; i++)
-//           for (int j = 0; j < N; j++)
-//                 thread_histog[thread_id][IMAGEN[i][j]]++;
-//
-//        #pragma omp for no_wait
-//        for (int i = 0; i < NG; i++)
-//            for(int j = 0; j < number_threads; j++)
-//               histog[i] += thread_histog[j][i]
-//     }
-// }
-
 /* sum.c (Roland Teodorowitsch; 16 set. 2021)
  * Compilation: gcc sum.c -o sum -fopenmp
  * Adapted from: http://lspd.mackenzie.br/marathon/06/sum.zip
