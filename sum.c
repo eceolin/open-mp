@@ -1,3 +1,21 @@
+// void HistogramaParaleloRed(int *histog, int number_threads)
+// {
+//     int thread_histog[number_threads][NG] = {{0}};
+//     #pragma omp parallel
+//     {
+//         int thread_id = omp_get_thread_num();
+//         #pragma omp for
+//         for (int i = 0; i < N; i++)
+//           for (int j = 0; j < N; j++)
+//                 thread_histog[thread_id][IMAGEN[i][j]]++;
+//
+//        #pragma omp for no_wait
+//        for (int i = 0; i < NG; i++)
+//            for(int j = 0; j < number_threads; j++)
+//               histog[i] += thread_histog[j][i]
+//     }
+// }
+
 /* sum.c (Roland Teodorowitsch; 16 set. 2021)
  * Compilation: gcc sum.c -o sum -fopenmp
  * Adapted from: http://lspd.mackenzie.br/marathon/06/sum.zip
@@ -14,49 +32,54 @@
 #define DIGITS 1000
 
 void sum(char* output, const long unsigned int d, const long unsigned int n) {
-    long unsigned int digit, i, remainder, div, mod, value;
+    long unsigned int processo, digit, i, remainder, div, mod;
     long unsigned int digits[d + 11];
+    long unsigned int matriz[omp_get_max_threads()+1][d + 11];
 
     #pragma omp parallel for schedule(dynamic, 5)
-    for (digit = 0; digit < d + 11; ++digit) {
-        digits[digit] = 0;
+    for (processo = 0; processo < omp_get_max_threads(); ++processo) {
+      for (digit = 0; digit < d + 11; ++digit) {
+          digits[digit] = 0;
+          matriz[processo][digit] = 0;
+      }
     }
 
 
-    #pragma omp parallel for private(digit, remainder, div, mod) reduction (+:digits[i]) schedule(dynamic, 5)
-    for (i = 1; i <= n; ++i) {
-        remainder = 1;
-        value = 0;
-        for (digit = 0; digit < d + 11 && remainder; ++digit) {
-            div = remainder / i;
-            mod = remainder % i;
-            digits[i] += div;
-            remainder = mod * 10;
-        }
-    }
+    #pragma omp parallel
+    {
 
-    #pragma omp parallel for
+      int thread_id = omp_get_thread_num();
+
+      #pragma omp for
+      for (int aux1 = 1; aux1 <= n; ++aux1) {
+        long unsigned int primeiraDivisao, restante, restoDivisao;
+        restante = 1;
+          for (int aux2 = 0; (aux2 < d + 11 && restante); ++aux2) {
+              primeiraDivisao = restante / aux1;
+              restoDivisao = restante % aux1;
+              matriz[thread_id][aux2] += primeiraDivisao;
+              restante = restoDivisao * 10;
+          }
+      }
+
+      #pragma omp for nowait
+          for (int i = 0; i < (d + 11); ++i)
+              for(int j = 0; j < omp_get_max_threads(); ++j)
+                  digits[i] += matriz[j][i];
+  }
+
+
     for (i = d + 11 - 1; i > 0; --i) {
-      #pragma omp critical
-      digits[i - 1] += digits[i] / 10;
-
-      digits[i] %= 10;
-
-      #pragma omp critical
-      digits[i - 1] += digits[i] / 10;
-
-      digits[i] %= 10;
+        digits[i - 1] += digits[i] / 10;
+        digits[i] %= 10;
     }
-
     if (digits[d + 1] >= 5) {
         ++digits[d];
     }
-
     for (i = d; i > 0; --i) {
         digits[i - 1] += digits[i] / 10;
         digits[i] %= 10;
     }
-
     sprintf(output,"%lu.",digits[0]);
     unsigned long int t = strlen(output);
     for (i = 1; i <= d; ++i)
