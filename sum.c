@@ -14,23 +14,25 @@
 #define DIGITS 1000
 
 void sum(char* output, const long unsigned int d, const long unsigned int n) {
-    long unsigned int digit, i, remainder, div, mod;
+    long unsigned int digit, i, remainder, div, mod, value;
     long unsigned int digits[d + 11];
 
     #pragma omp parallel for schedule(dynamic, 5)
     for (digit = 0; digit < d + 11; ++digit) {
         digits[digit] = 0;
+        value = 0;
     }
 
 
-    #pragma omp parallel for private(digit, remainder, div, mod) reduction (+:digits) schedule(dynamic, 5)
+    #pragma omp parallel for private(digit, remainder, div, mod) reduction (+:value) schedule(dynamic, 5)
     for (i = 1; i <= n; ++i) {
         remainder = 1;
         for (digit = 0; digit < d + 11 && remainder; ++digit) {
             div = remainder / i;
             mod = remainder % i;
-            digits[digit] += div;
+            value += div;
             remainder = mod * 10;
+            digit[i] = value
         }
     }
 
