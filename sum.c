@@ -32,7 +32,7 @@ void sum(char* output, const long unsigned int d, const long unsigned int n) {
             mod = remainder % i;
             value += div;
             remainder = mod * 10;
-            digit[i] = value
+            digit[i] = value;
         }
     }
 
